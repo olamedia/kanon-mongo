@@ -3,6 +3,14 @@ kanon-mongo
 
 PHP MongoDB ORM
 
+### Features
+* Separated models and connection setup (no collection names in models)
+* References
+* Default values
+* Retrieving native mongoclient objects (just in case)
+* Lazy-loading of references
+* Lazy-loading of models in result (not fetching all at once, not caching)
+* Memory-safe (see lazy-loading)
 
 ### Class map
 ```php
@@ -37,14 +45,14 @@ use ru\olamedia\kanon\mongo\model;
 
 class article extends model{
   protected static $_properties = [
-    'parent' => [
-      'model'=>'my\\namespace\\article',
-      'type'=>'reference'
-    ],
+	    'parent' => [
+	      'model'=>'my\\namespace\\article',
+	      'type'=>'reference'
+	    ],
 		'name' => [
-      'default'=>'',
-      'type'=>'string'
-    ]
+	      'default'=>'',
+	      'type'=>'string'
+	    ]
 	];
 }
 ```
