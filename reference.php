@@ -41,9 +41,13 @@ class reference{
 		return $this->getModel();
 	}
 	public function getModel(){
-		if (null === $this->_model && null !== $this->_id){
+		if (null === $this->_model){
 			$className = $this->_className;
-			$this->_model = $className::getById($this->_id);
+			if (null === $this->_id){
+				$this->_model = new $className();
+			}else{
+				$this->_model = $className::getById($this->_id);
+			}
 		}
 		return $this->_model;
 	}
