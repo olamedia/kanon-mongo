@@ -2,7 +2,7 @@
 
 namespace ru\olamedia\kanon\mongo;
 
-class result implements \Iterator{
+class result implements \Iterator, \Countable{
 	private $_className = null;
 	private $_cursor = null;
 	private $_asArray = false;
