@@ -1,7 +1,7 @@
 kanon-mongo
 ===========
 
-PHP MongoDb ORM
+PHP MongoDB ORM
 
 
 ### Class map
@@ -116,3 +116,10 @@ echo count($articles);
 foreach ($articles as $article){
 }
 ```
+
+### Requirements
+* PHP >= 5.3
+* PECL mongoclient >= 1.3.0
+
+### License
+MIT
