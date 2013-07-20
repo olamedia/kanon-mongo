@@ -21,10 +21,12 @@ $autoload = array(
 ### Property types
 * string
 * int | integer
-* float | double (both are double in mongo)
+* float | double (both are double in MongoDB)
 * bool | boolean
-* timestamp
-* datetime
+* timestamp (\MongoTimestamp, MongoTimestamp is used by sharding. If you're not looking to write sharding tools, what you probably want is MongoDate.)
+* datetime | date | time (\MongoDate, MongoDB stores dates as milliseconds past the epoch.)
+* reference (@see http://php.net/mongodbref )
+* references (array of "reference"s)
 
 ### Model definition
 ```php
