@@ -195,10 +195,9 @@ class model{
 		$ref = \MongoDBRef::create($this->collectionName(), $this->getId(), $this->dbName());
 		return $ref;
 	}
-	private function _loadReference($name){
+	private function _loadReference($name, $type){
 		if (!isset($this->_references[$name])){
 			$this->_references[$name] = null;
-			$type = self::_getPropertyType($name);
 			$model = $type['model'];
 			$referenceType = $type['type'];
 			if (\class_exists($model)){
@@ -206,6 +205,8 @@ class model{
 				if ($referenceType == 'reference'){
 					if (\MongoDBRef::isRef($value)){
 						$this->_references[$name] = new reference($model,$value['$id']);
+					}else{
+						$this->_references[$name] = new reference($model,null);
 					}
 				}elseif ($referenceType == 'references'){
 					$this->_references[$name] = new referenceSet($model);
@@ -248,8 +249,7 @@ class model{
 		}
 		return $this->_references[$name];
 	}
-	private function _setReference($name, $value){
-		$type = self::_getPropertyType($name);
+	private function _setReference($name, $value, $type){
 		$model = $type['model'];
 		$referenceType = $type['type'];
 		if ($referenceType == 'reference'){
@@ -285,54 +285,50 @@ class model{
 		if (null != $type){
 			$valueType = $type['type'];
 			if ('string' == $valueType){
-				return \strval($value);
-			}
-			if ('boolean' == $valueType || 'bool' == $valueType){
-				return !!($value);
-			}
-			if ('integer' == $valueType || 'int' == $valueType){
-				return \intval($value);
-			}
-			if ('float' == $valueType || 'double' == $valueType){
-				return \doubleval($value);
-			}
-			// MongoTimestamp is used by sharding. 
-			// If you're not looking to write sharding tools, what you probably want is MongoDate.
-			if ('timestamp' == $valueType){
+				$value = \strval($value);
+			}elseif ('boolean' == $valueType || 'bool' == $valueType){
+				$value = !!($value);
+			}elseif ('integer' == $valueType || 'int' == $valueType){
+				$value = \intval($value);
+			}elseif ('float' == $valueType || 'double' == $valueType){
+				$value = \doubleval($value);
+			}elseif ('timestamp' == $valueType){
+				// MongoTimestamp is used by sharding. 
+				// If you're not looking to write sharding tools, what you probably want is MongoDate.
 				if (!($value instanceof \MongoTimestamp)){
 					$value = new \MongoTimestamp($value);
 				}
-				return $value;
-			}
-			if ('datetime' == $valueType || 'time' == $valueType || 'date' == $valueType){
+			}elseif ('datetime' == $valueType || 'time' == $valueType || 'date' == $valueType){
 				if (!($value instanceof \MongoDate)){
 					$value = new \MongoDate($value); // FIXME parse float into usec
 				}
-				return $value;
-			}
-			if (\is_array($value)){
+			}elseif (\is_array($value)){
 				// check if is ref
 				if (\MongoDBRef::isRef($value)){
 					// which class??
 				}
 			}
 		}
+		$value = $this->processValue($name, $value);
+		return $value;
+	}
+	public function processValue($name, $value){
 		return $value;
 	}
 	// Magic methods
 	public function __get($name){
-		$type = self::_getPropertyType($name);
+		$type = typeManager::get(\get_called_class(), $name);
 		if (null != $type && isset($type['type']) && ($type['type'] == 'reference' || $type['type'] == 'references')){
-			return $this->_loadReference($name);
+			return $this->_loadReference($name, $type);
 		}else if (\array_key_exists($name, $this->_data)){
 			return $this->_internalValue($name, $this->_data[$name], $type);
 		}
 		return null;
 	}
 	public function __set($name, $value){
-		$type = self::_getPropertyType($name);
+		$type = typeManager::get(\get_called_class(), $name);
 		if (null != $type && isset($type['type']) && ($type['type'] == 'reference' || $type['type'] == 'references')){
-			$value = $this->_setReference($name, $value);
+			$value = $this->_setReference($name, $value, $type);
 		}
 		$value = $this->_internalValue($name, $value, $type);
 		if (isset($this->_data[$name]) && $this->_dirty[$name] === $value){
